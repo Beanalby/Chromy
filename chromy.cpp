@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <QFile>
 #include <QRegExp>
 #include <QTextCodec>
+#include <QTextStream>
 #include "sqlite3.h"
 
 #ifdef Q_WS_WIN
@@ -101,7 +102,7 @@ void chromyPlugin::getCatalog(QList<CatItem>* items)
         {
             url = urlRx.cap(1);
             if(name != 0 && url != 0 && !url.isEmpty() && !name.isEmpty())
-                items->push_back(CatItem(url, name, 0, getIcon()));
+                items->push_back(CatItem(url, name, HASH_chromy, getIcon()));
         }
     }
     inputFile.close();
@@ -114,9 +115,17 @@ void chromyPlugin::getCatalog(QList<CatItem>* items)
     sqlite3 *db;
     int rc;
     char *zErrMsg = 0;
+    // QFile outFile("D:\\code\\chromy\\jason.log");
+    // outFile.open(QIODevice::WriteOnly);
+    // QTextStream *out = new QTextStream(&outFile);
+    // *out << "Preparing to do Web Data stuffs.\n";
+    chromyContext context;
+    context.chromy = this;
+    context.items = items;
+    // context.debug = &out;
     rc = sqlite3_open_v2(tmpFile.fileName().toUtf8().constData(), &db, SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX, 0);
     if(!rc){
-        rc = sqlite3_exec(db, "select short_name, keyword, url from keywords", indexChromeCallback, (void*)items, &zErrMsg);
+        rc = sqlite3_exec(db, "select keyword, short_name, url from keywords", indexChromeCallback, (void*)&context, &zErrMsg);
         if(rc!=SQLITE_OK) {
             // error
             // out << "Error on sql statement: " << zErrMsg << "\n";
@@ -125,15 +134,24 @@ void chromyPlugin::getCatalog(QList<CatItem>* items)
     }
     tmpFile.close();
     tmpFile.remove();
+    // *out << "Done with Web Data stuffs.\n";
+    // outFile.close();
     if(db) {
         sqlite3_close(db);
     }
 }
 
 static int indexChromeCallback(void* param, int argc, char **argv, char **azColName){
-    QList<CatItem>* items = (QList<CatItem>*)param;
-    // add as a search engine, not a bookmark
-    // items->push_back(CatItem(QString(argv[1]), QString(argv[2])));
+    chromyContext *context = (chromyContext*)param;
+    /* for search engines, the content being searched is the keyword,
+     * and the short name is displayed.  The URL is kept around in
+     * data for when the item is launched */
+    QString fullName = QString(argv[0]) + ".chromy";
+    QString shortName = QString(argv[1]);
+    CatItem item(fullName, shortName,
+                 context->chromy->HASH_chromy, context->chromy->getIcon());
+    item.data = (void*)(new QString(argv[2]));
+    context->items->push_back(item);
     return 0;
 }
 

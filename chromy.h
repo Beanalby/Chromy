@@ -55,4 +55,10 @@ public:
     QString getIcon();
 };
 
+/* passed to the sql callback so it can interact properly */
+struct chromyContext {
+    chromyPlugin *chromy;
+    QList<CatItem>* items;
+};
+
 extern chromyPlugin* gchromyInstance;
