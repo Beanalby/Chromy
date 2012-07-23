@@ -64,6 +64,20 @@ void chromyPlugin::getLabels(QList<InputData>* id)
 
 void chromyPlugin::getResults(QList<InputData>* id, QList<CatItem>* results)
 {
+    if(id->count() > 1)
+    {
+        CatItem item = id->first().getTopResult();
+        /* bookmarks will have null .data, search engines will have their
+         * url stored there. */
+        if(item.id == HASH_chromy && item.data != NULL)
+        {
+            // This is a user search text, create an entry for it
+            QString &text = id->last().getText();
+            CatItem newItem(text + ".weirdChromy", text, HASH_chromy, getIcon());
+            newItem.data = item.data;
+            results->push_front(newItem);
+        }
+    }
 }
 
 
@@ -115,10 +129,6 @@ void chromyPlugin::getCatalog(QList<CatItem>* items)
     sqlite3 *db;
     int rc;
     char *zErrMsg = 0;
-    // QFile outFile("D:\\code\\chromy\\jason.log");
-    // outFile.open(QIODevice::WriteOnly);
-    // QTextStream *out = new QTextStream(&outFile);
-    // *out << "Preparing to do Web Data stuffs.\n";
     chromyContext context;
     context.chromy = this;
     context.items = items;
@@ -134,8 +144,6 @@ void chromyPlugin::getCatalog(QList<CatItem>* items)
     }
     tmpFile.close();
     tmpFile.remove();
-    // *out << "Done with Web Data stuffs.\n";
-    // outFile.close();
     if(db) {
         sqlite3_close(db);
     }
@@ -155,8 +163,31 @@ static int indexChromeCallback(void* param, int argc, char **argv, char **azColN
     return 0;
 }
 
-void chromyPlugin::launchItem(QList<InputData>* id, CatItem* item)
+void chromyPlugin::launchItem(QList<InputData>* inputData, CatItem* item)
 {
+    // QFile outFile("D:\\code\\chromy\\jason.log");
+    // outFile.open(QIODevice::WriteOnly);
+    // QTextStream *out = new QTextStream(&outFile);
+    // *out << "Launching with [" << inputData->count() << "] inputs:\n";
+    // for(int i=0;i<inputData->count();i++) {
+	// 	const QString txt = (*inputData)[i].getText();
+    //     *out << " #" << i << " [" << txt << "]\n";
+    // }
+    // outFile.close();
+    QString file = "";
+    if(item->data == NULL) {
+        // just a bookmark
+        file = item->fullPath;
+    } else {
+        // extract the URL from data, and substitute their query
+        file = *((QString*)(item->data));
+        if(inputData->count() > 1) {
+            QString repl = (*inputData)[1].getText();
+            file.replace(QRegExp("\\{searchTerms\\}"), repl);
+        }
+    }
+    QUrl url(file);
+    runProgram(url.toString(), "");
 }
 
 void chromyPlugin::doDialog(QWidget* parent, QWidget** newDlg)
