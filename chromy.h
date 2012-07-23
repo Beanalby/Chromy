@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "plugin_interface.h"
 
-
+static int indexChromeCallback(void* param, int argc, char **argv, char **azColName);
 
 class chromyPlugin : public QObject, public PluginInterface
 {
@@ -35,11 +35,13 @@ public:
 private:
 
 public:
+
 	chromyPlugin() {
 		HASH_chromy = qHash(QString(PLUGIN_NAME));
 	}
 	~chromyPlugin() {}
-	int msg(int msgId, void* wParam = NULL, void* lParam = NULL); 
+	int msg(int msgId, void* wParam = NULL, void* lParam = NULL);
+	QString getChromePath();
 
 	void getLabels(QList<InputData>*);
 	void getID(uint*);

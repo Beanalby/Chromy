@@ -2,7 +2,7 @@
  CONFIG       += plugin debug_and_release
  FORMS		   = 
  HEADERS       = plugin_interface.h chromy.h
- SOURCES       = plugin_interface.cpp chromy.cpp 
+ SOURCES       = plugin_interface.cpp chromy.cpp sqlite3.c
  TARGET		   = chromy
  
  win32 {
@@ -14,4 +14,3 @@
 %	LIBS += Gdi32.lib
 %	LIBS += comctl32.lib
 }
-

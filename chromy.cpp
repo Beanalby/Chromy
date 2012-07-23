@@ -22,12 +22,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <QFile>
 #include <QRegExp>
 #include <QTextCodec>
+#include "sqlite3.h"
 
 #ifdef Q_WS_WIN
 #include <windows.h>
 #include <shlobj.h>
 #include <tchar.h>
 
+QString GetShellDirectory(int type)
+{
+	wchar_t buffer[_MAX_PATH];
+	SHGetFolderPath(NULL, type, NULL, 0, buffer);
+	return QString::fromUtf16(buffer);
+}
 #endif
 
 #include "chromy.h"
@@ -69,6 +76,65 @@ QString chromyPlugin::getIcon()
 
 void chromyPlugin::getCatalog(QList<CatItem>* items)
 {
+	QString path = getChromePath();
+
+	// do the bookmarks first
+	QFile inputFile(path + "Bookmarks");
+	if(!inputFile.open(QIODevice::ReadOnly | QIODevice::Text))
+		return;
+
+	QRegExp nameRx("\"name\": \"([^\"]+)\"");
+	QRegExp urlRx("\"url\": \"([^\"]+)\"");
+	QString line, name, url;
+
+	while(true)
+	{
+		line = inputFile.readLine();
+		if(line == 0)
+			break;
+		if(nameRx.indexIn(line) != -1)
+		{
+			name = nameRx.cap(1);
+			continue;
+		}
+		if(urlRx.indexIn(line) != -1)
+		{
+			url = urlRx.cap(1);
+			if(name != 0 && url != 0 && !url.isEmpty() && !name.isEmpty())
+				items->push_back(CatItem(url, name, 0, getIcon()));
+		}
+	}
+	inputFile.close();
+
+	// pull the search engines from the sqlite3 database.
+	QFile tmpFile(path + "chromy.tmp.db");
+	QFile webData(path + "Web Data");
+	// Chrome holds "Web Data" open, make a copy for us to read
+	webData.copy(tmpFile.fileName());
+	sqlite3 *db;
+	int rc;
+	char *zErrMsg = 0;
+	rc = sqlite3_open_v2(tmpFile.fileName().toUtf8().constData(), &db, SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX, 0);
+	if(!rc){
+		rc = sqlite3_exec(db, "select short_name, keyword, url from keywords", indexChromeCallback, (void*)items, &zErrMsg);
+		if(rc!=SQLITE_OK) {
+			// error
+			// out << "Error on sql statement: " << zErrMsg << "\n";
+			// sqlite3_free(zErrMsg);
+		}
+	}
+	tmpFile.close();
+	tmpFile.remove();
+	if(db) {
+		sqlite3_close(db);
+	}
+}
+
+static int indexChromeCallback(void* param, int argc, char **argv, char **azColName){
+	QList<CatItem>* items = (QList<CatItem>*)param;
+	// add as a search engine, not a bookmark
+	// items->push_back(CatItem(QString(argv[1]), QString(argv[2])));
+	return 0;
 }
 
 void chromyPlugin::launchItem(QList<InputData>* id, CatItem* item)
@@ -87,7 +153,7 @@ int chromyPlugin::msg(int msgId, void* wParam, void* lParam)
 {
 	bool handled = false;
 	switch (msgId)
-	{		
+	{
 		case MSG_INIT:
 			init();
 			handled = true;
@@ -135,5 +201,23 @@ int chromyPlugin::msg(int msgId, void* wParam, void* lParam)
 		
 	return handled;
 }
+
+QString chromyPlugin::getChromePath()
+{
+	QString platformPath;
+#ifdef Q_WS_WIN
+	platformPath  = GetShellDirectory(CSIDL_LOCAL_APPDATA) + "/Google/Chrome/";
+#endif
+
+#ifdef Q_WS_X11
+	// todo - what's the proper path?
+#endif
+
+#ifdef Q_WS_MAC
+	// todo - what's the proper path?
+#endif
+	return platformPath + "/User Data/Default/";
+}
+
 
 Q_EXPORT_PLUGIN2(chromy, chromyPlugin) 
