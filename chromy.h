@@ -26,33 +26,33 @@ static int indexChromeCallback(void* param, int argc, char **argv, char **azColN
 
 class chromyPlugin : public QObject, public PluginInterface
 {
-	Q_OBJECT
-	Q_INTERFACES(PluginInterface)
+    Q_OBJECT
+    Q_INTERFACES(PluginInterface)
 
 
 public:
-	uint HASH_chromy;
+    uint HASH_chromy;
 private:
 
 public:
 
-	chromyPlugin() {
-		HASH_chromy = qHash(QString(PLUGIN_NAME));
-	}
-	~chromyPlugin() {}
-	int msg(int msgId, void* wParam = NULL, void* lParam = NULL);
-	QString getChromePath();
+    chromyPlugin() {
+        HASH_chromy = qHash(QString(PLUGIN_NAME));
+    }
+    ~chromyPlugin() {}
+    int msg(int msgId, void* wParam = NULL, void* lParam = NULL);
+    QString getChromePath();
 
-	void getLabels(QList<InputData>*);
-	void getID(uint*);
-	void getName(QString*);
-	void getResults(QList<InputData>* id, QList<CatItem>* results);
-	void getCatalog(QList<CatItem>* items);
-	void launchItem(QList<InputData>*, CatItem*);
-	void doDialog(QWidget* parent, QWidget**);
-	void endDialog(bool accept);
-	void init();
-	QString getIcon();
+    void getLabels(QList<InputData>*);
+    void getID(uint*);
+    void getName(QString*);
+    void getResults(QList<InputData>* id, QList<CatItem>* results);
+    void getCatalog(QList<CatItem>* items);
+    void launchItem(QList<InputData>*, CatItem*);
+    void doDialog(QWidget* parent, QWidget**);
+    void endDialog(bool accept);
+    void init();
+    QString getIcon();
 };
 
 extern chromyPlugin* gchromyInstance;
