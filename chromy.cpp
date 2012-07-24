@@ -262,7 +262,8 @@ QString chromyPlugin::getChromePath()
 #endif
 
 #ifdef Q_WS_MAC
-    // todo - what's the proper path?
+    // untested, no idea if it'll work
+    platformPath = "~/Library/Application Support/Google/Chrome/";
 #endif
     return platformPath + "/User Data/Default/";
 }
