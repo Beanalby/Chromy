@@ -73,7 +73,7 @@ void chromyPlugin::getResults(QList<InputData>* id, QList<CatItem>* results)
         {
             // This is a user search text, create an entry for it
             QString &text = id->last().getText();
-            CatItem newItem(text + ".weirdChromy", text, HASH_chromy, getIcon());
+            CatItem newItem(text + ".chromySearch", text, HASH_chromy, getIcon());
             newItem.data = item.data;
             results->push_front(newItem);
         }
@@ -85,7 +85,7 @@ void chromyPlugin::getResults(QList<InputData>* id, QList<CatItem>* results)
 QString chromyPlugin::getIcon()
 {
 #ifdef Q_WS_WIN
-    return qApp->applicationDirPath() + "/plugins/icons/chromy.ico";
+    return qApp->applicationDirPath() + "/plugins/icons/chromy.png";
 #endif
 }
 
@@ -154,7 +154,7 @@ static int indexChromeCallback(void* param, int argc, char **argv, char **azColN
     /* for search engines, the content being searched is the keyword,
      * and the short name is displayed.  The URL is kept around in
      * data for when the item is launched */
-    QString fullName = QString(argv[0]) + ".chromy";
+    QString fullName = QString(argv[0]) + " .chromy";
     QString shortName = QString(argv[1]);
     CatItem item(fullName, shortName,
                  context->chromy->HASH_chromy, context->chromy->getIcon());
