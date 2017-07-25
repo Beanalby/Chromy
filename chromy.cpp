@@ -158,11 +158,11 @@ void chromyPlugin::getCatalog(QList<CatItem>* items)
             // sqlite3_free(zErrMsg);
         }
     }
-    tmpFile.close();
-    tmpFile.remove();
     if(db) {
         sqlite3_close(db);
     }
+    tmpFile.close();
+    tmpFile.remove();
 }
 
 static int indexChromeCallback(void* param, int argc, char **argv, char **azColName){
