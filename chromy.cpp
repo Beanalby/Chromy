@@ -78,6 +78,19 @@ void chromyPlugin::getResults(QList<InputData>* id, QList<CatItem>* results)
             results->push_front(newItem);
         }
     }
+
+	// It seems that Launchy puts something invalid in .data when starting up. It can be fixed by the user rescanning the catalog,
+	// but this workaround replaces the results we get from Launchy with results gotten directly from catalog
+	// Pretty ineffective, but not really felt in practice
+	QList<CatItem> catalogItems;
+	getCatalog(&catalogItems);
+
+	for(int i = 0; i < results->count(); i++) {
+		CatItem item = (*results)[i];
+		if (item.id == HASH_chromy && catalogItems.contains(item)) {
+			(*results)[i] = catalogItems[catalogItems.indexOf(item)];
+		}
+	}
 }
 
 
@@ -183,7 +196,8 @@ void chromyPlugin::launchItem(QList<InputData>* inputData, CatItem* item)
         file = *((QString*)(item->data));
         if(inputData->count() > 1) {
             QString repl = (*inputData)[1].getText();
-            file.replace(QRegExp("\\{searchTerms\\}"), repl);
+			// URL encode the search string, to be able to search for "Learning C++" for example
+            file.replace(QRegExp("\\{searchTerms\\}"), QUrl::toPercentEncoding(repl));
         }
     }
     QUrl url(file);

@@ -8,8 +8,8 @@
  win32 {
  	CONFIG -= embed_manifest_dll
 	LIBS += shell32.lib
-	INCLUDEPATH += "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Include"
-	LIBPATH += "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib"
+	INCLUDEPATH += "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1\Include"
+	LIBPATH += "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1\Lib"
 %	LIBS += user32.lib
 %	LIBS += Gdi32.lib
 %	LIBS += comctl32.lib
