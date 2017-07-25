@@ -111,13 +111,16 @@ void chromyPlugin::getCatalog(QList<CatItem>* items)
     if(!inputFile.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
 
+    QTextStream *in = new QTextStream(&inputFile);
+	in->setCodec("UTF-8");
+
     QRegExp nameRx("\"name\": \"([^\"]+)\"");
     QRegExp urlRx("\"url\": \"([^\"]+)\"");
     QString line, name, url;
 
     while(true)
     {
-        line = inputFile.readLine();
+        line = in->readLine();
         if(line == 0)
             break;
         if(nameRx.indexIn(line) != -1)
